@@ -3,13 +3,11 @@ from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.ext import Application, CommandHandler, CallbackContext, CallbackQueryHandler, MessageHandler, filters
 from aiohttp import web
 
-# Token del Bot 2 desde las variables de entorno
+# Obtén los tokens y la URL base de las variables de entorno
 BOT2_TOKEN = os.getenv("BOT2_TOKEN")
+WEBHOOK_URL_BASE = os.getenv("WEBHOOK_URL_BASE", "https://placeholder.onrender.com")
 
-# URL base para el webhook
-WEBHOOK_URL_BASE = os.getenv("WEBHOOK_URL_BASE", "https://<TU_RENDER_DOMINIO>.onrender.com")
-
-# Configuración del Bot 2
+# Configura el segundo bot
 def setup_bot2():
     async def start(update: Update, context: CallbackContext) -> None:
         keyboard = [
@@ -19,7 +17,7 @@ def setup_bot2():
             [InlineKeyboardButton("GUIA DE TALLAS", callback_data='guia_de_tallas')],
             [InlineKeyboardButton("PRECIOS", callback_data='precios')],
             [InlineKeyboardButton("PROMOS", callback_data='promos')],
-            [InlineKeyboardButton("REDES SOCIALES", callback_data='redes_sociales')]
+            [InlineKeyboardButton("REDES SOCIALES", callback_data='redes_sociales')],
         ]
         reply_markup = InlineKeyboardMarkup(keyboard)
         await context.bot.send_message(
@@ -32,7 +30,10 @@ def setup_bot2():
         query = update.callback_query
         await query.answer()
 
-        back_to_main_menu_keyboard = InlineKeyboardMarkup([[InlineKeyboardButton("⬅️ Volver al menú principal", callback_data='main_menu')]])
+        # Menú de retorno al menú principal
+        back_to_main_menu_keyboard = InlineKeyboardMarkup([
+            [InlineKeyboardButton("⬅️ Volver al menú principal", callback_data='main_menu')]
+        ])
 
         if query.data == 'ver_estado_del_pedido':
             await query.edit_message_text(
@@ -54,38 +55,48 @@ def setup_bot2():
                 reply_markup=reply_markup
             )
         elif query.data == 'catalogo_futbol':
-            keyboard = [[InlineKeyboardButton("⬅️ Volver al catálogo", callback_data='ver_catalogo')]]
+            keyboard = [
+                [InlineKeyboardButton("⬅️ Volver al catálogo", callback_data='ver_catalogo')]
+            ]
             reply_markup = InlineKeyboardMarkup(keyboard)
             await query.edit_message_text(
-                "Has seleccionado CAMISETAS DE FÚTBOL: https://drive.google.com/drive/folders/1lxyq6EjtylR8RlLGzB25OBBWEWt2wn6P",
+                "Has seleccionado CAMISETAS DE FÚTBOL: https://drive.google.com/drive/folders/1lxyq6EjtylR8RlLGzB25OBBWEWt2wn6P.",
                 reply_markup=reply_markup
             )
         elif query.data == 'catalogo_nba':
-            keyboard = [[InlineKeyboardButton("⬅️ Volver al catálogo", callback_data='ver_catalogo')]]
+            keyboard = [
+                [InlineKeyboardButton("⬅️ Volver al catálogo", callback_data='ver_catalogo')]
+            ]
             reply_markup = InlineKeyboardMarkup(keyboard)
             await query.edit_message_text(
-                "Has seleccionado CAMISETAS NBA: https://drive.google.com/drive/folders/1mpKAE3QWi5DDCd2J8Qb3I0_XcYZvqZLE",
+                "Has seleccionado CAMISETAS NBA: https://drive.google.com/drive/folders/1mpKAE3QWi5DDCd2J8Qb3I0_XcYZvqZLE.",
                 reply_markup=reply_markup
             )
         elif query.data == 'catalogo_nfl':
-            keyboard = [[InlineKeyboardButton("⬅️ Volver al catálogo", callback_data='ver_catalogo')]]
+            keyboard = [
+                [InlineKeyboardButton("⬅️ Volver al catálogo", callback_data='ver_catalogo')]
+            ]
             reply_markup = InlineKeyboardMarkup(keyboard)
             await query.edit_message_text(
-                "Has seleccionado CAMISETAS NFL: https://drive.google.com/drive/folders/1ha9theGvBhUPs9RwziaXHhBo9kQUZq6u",
+                "Has seleccionado CAMISETAS NFL: https://drive.google.com/drive/folders/1ha9theGvBhUPs9RwziaXHhBo9kQUZq6u.",
                 reply_markup=reply_markup
             )
         elif query.data == 'catalogo_f1':
-            keyboard = [[InlineKeyboardButton("⬅️ Volver al catálogo", callback_data='ver_catalogo')]]
+            keyboard = [
+                [InlineKeyboardButton("⬅️ Volver al catálogo", callback_data='ver_catalogo')]
+            ]
             reply_markup = InlineKeyboardMarkup(keyboard)
             await query.edit_message_text(
-                "Has seleccionado CAMISETAS F1: https://drive.google.com/drive/folders/1_ExfzaOTepN4jc73cotQDRfOh4OzMMgg",
+                "Has seleccionado CAMISETAS F1: https://drive.google.com/drive/folders/1_ExfzaOTepN4jc73cotQDRfOh4OzMMgg.",
                 reply_markup=reply_markup
             )
         elif query.data == 'catalogo_chandals':
-            keyboard = [[InlineKeyboardButton("⬅️ Volver al catálogo", callback_data='ver_catalogo')]]
+            keyboard = [
+                [InlineKeyboardButton("⬅️ Volver al catálogo", callback_data='ver_catalogo')]
+            ]
             reply_markup = InlineKeyboardMarkup(keyboard)
             await query.edit_message_text(
-                "Has seleccionado CHÁNDALS: https://drive.google.com/drive/folders/1emxdyQOqin7li4TENe4qhgZWx9laM2t1",
+                "Has seleccionado CHÁNDALS: https://drive.google.com/drive/folders/1emxdyQOqin7li4TENe4qhgZWx9laM2t1.",
                 reply_markup=reply_markup
             )
         elif query.data == 'precios':
@@ -103,24 +114,18 @@ def setup_bot2():
 🔢 Dorsal: +2€
 🩹 Parches: +1€
 """
-            await query.edit_message_text(precios, reply_markup=back_to_main_menu_keyboard)
-        elif query.data == 'guia_de_tallas':
-            image_url = "https://drive.google.com/uc?export=view&id=1x6aW1N4WMCKc7hrFvdqFv3DqrRLk-7IJ"
-            await context.bot.send_photo(
-                chat_id=update.effective_chat.id,
-                photo=image_url,
-                caption="Aquí tienes la guía de tallas."
-            )
             await query.edit_message_text(
-                "GUÍA DE TALLAS mostrada.",
+                precios,
+                reply_markup=back_to_main_menu_keyboard
+            )
+        elif query.data == 'guia_de_tallas':
+            await query.edit_message_text(
+                "Aquí tienes la GUÍA DE TALLAS: https://drive.google.com/uc?export=view&id=1x6aW1N4WMCKc7hrFvdqFv3DqrRLk-7IJ.",
                 reply_markup=back_to_main_menu_keyboard
             )
         elif query.data == 'promos':
             await query.edit_message_text(
-                "🎉🔥 ¡REBAJAS DE INVIERNO! 🔥🎉\n\n"
-                "👕 *15% DE DESCUENTO EN TODA LA TIENDA* 🛒💸\n"
-                "👕 *¡Compra 4 y llévate 1 camiseta GRATIS!* 🎁🎽\n\n"
-                "📅 *Durante todo el mes de enero.*",
+                "🎉 PROMOS:\n- Compra 4 y lleva 1 GRATIS.\n- 15% de descuento en invierno.",
                 reply_markup=back_to_main_menu_keyboard
             )
         elif query.data == 'redes_sociales':
@@ -148,21 +153,26 @@ def setup_bot2():
 
     return application
 
+# Inicializa el bot
 bot2 = setup_bot2()
 
-async def set_webhook(application):
-    url = f"{WEBHOOK_URL_BASE}/bot2"
+# Configura el webhook para el bot 2
+async def set_webhook(application, path):
+    url = f"{WEBHOOK_URL_BASE}{path}"
     await application.bot.set_webhook(url=url)
 
-# Crea la aplicación web para el webhook
+async def setup_webhooks():
+    await set_webhook(bot2, "/bot2")
+
+# Crea la aplicación web para manejar los webhooks
 app = web.Application()
 app.add_routes([
-    web.post("/bot2", bot2.webhook_handler),
+    web.post("/bot2", bot2.update_queue.put),  # Cambiado a update_queue.put
 ])
 
 # Inicia el servidor web
 if __name__ == '__main__':
     import asyncio
     loop = asyncio.get_event_loop()
-    loop.run_until_complete(set_webhook(bot2))
+    loop.run_until_complete(setup_webhooks())
     web.run_app(app, host="0.0.0.0", port=int(os.getenv("PORT", 8443)))

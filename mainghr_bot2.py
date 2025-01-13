@@ -1,13 +1,13 @@
 import os
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, CallbackContext, CallbackQueryHandler, MessageHandler, filters
 from aiohttp import web
 
-# Obtén los tokens y la URL base de las variables de entorno
+# Obtén los tokens y la URL base desde las variables de entorno
 BOT2_TOKEN = os.getenv("BOT2_TOKEN")
 WEBHOOK_URL_BASE = os.getenv("WEBHOOK_URL_BASE", "https://placeholder.onrender.com")
 
-# Configura el segundo bot
+# Configura el bot con todo el contenido
 def setup_bot2():
     async def start(update: Update, context: CallbackContext) -> None:
         keyboard = [
@@ -30,7 +30,7 @@ def setup_bot2():
         query = update.callback_query
         await query.answer()
 
-        # Menú de retorno al menú principal
+        # Menú para regresar al inicio
         back_to_main_menu_keyboard = InlineKeyboardMarkup([
             [InlineKeyboardButton("⬅️ Volver al menú principal", callback_data='main_menu')]
         ])
@@ -55,49 +55,29 @@ def setup_bot2():
                 reply_markup=reply_markup
             )
         elif query.data == 'catalogo_futbol':
-            keyboard = [
-                [InlineKeyboardButton("⬅️ Volver al catálogo", callback_data='ver_catalogo')]
-            ]
-            reply_markup = InlineKeyboardMarkup(keyboard)
             await query.edit_message_text(
                 "Has seleccionado CAMISETAS DE FÚTBOL: https://drive.google.com/drive/folders/1lxyq6EjtylR8RlLGzB25OBBWEWt2wn6P.",
-                reply_markup=reply_markup
+                reply_markup=back_to_main_menu_keyboard
             )
         elif query.data == 'catalogo_nba':
-            keyboard = [
-                [InlineKeyboardButton("⬅️ Volver al catálogo", callback_data='ver_catalogo')]
-            ]
-            reply_markup = InlineKeyboardMarkup(keyboard)
             await query.edit_message_text(
                 "Has seleccionado CAMISETAS NBA: https://drive.google.com/drive/folders/1mpKAE3QWi5DDCd2J8Qb3I0_XcYZvqZLE.",
-                reply_markup=reply_markup
+                reply_markup=back_to_main_menu_keyboard
             )
         elif query.data == 'catalogo_nfl':
-            keyboard = [
-                [InlineKeyboardButton("⬅️ Volver al catálogo", callback_data='ver_catalogo')]
-            ]
-            reply_markup = InlineKeyboardMarkup(keyboard)
             await query.edit_message_text(
                 "Has seleccionado CAMISETAS NFL: https://drive.google.com/drive/folders/1ha9theGvBhUPs9RwziaXHhBo9kQUZq6u.",
-                reply_markup=reply_markup
+                reply_markup=back_to_main_menu_keyboard
             )
         elif query.data == 'catalogo_f1':
-            keyboard = [
-                [InlineKeyboardButton("⬅️ Volver al catálogo", callback_data='ver_catalogo')]
-            ]
-            reply_markup = InlineKeyboardMarkup(keyboard)
             await query.edit_message_text(
                 "Has seleccionado CAMISETAS F1: https://drive.google.com/drive/folders/1_ExfzaOTepN4jc73cotQDRfOh4OzMMgg.",
-                reply_markup=reply_markup
+                reply_markup=back_to_main_menu_keyboard
             )
         elif query.data == 'catalogo_chandals':
-            keyboard = [
-                [InlineKeyboardButton("⬅️ Volver al catálogo", callback_data='ver_catalogo')]
-            ]
-            reply_markup = InlineKeyboardMarkup(keyboard)
             await query.edit_message_text(
                 "Has seleccionado CHÁNDALS: https://drive.google.com/drive/folders/1emxdyQOqin7li4TENe4qhgZWx9laM2t1.",
-                reply_markup=reply_markup
+                reply_markup=back_to_main_menu_keyboard
             )
         elif query.data == 'precios':
             precios = """
@@ -114,10 +94,7 @@ def setup_bot2():
 🔢 Dorsal: +2€
 🩹 Parches: +1€
 """
-            await query.edit_message_text(
-                precios,
-                reply_markup=back_to_main_menu_keyboard
-            )
+            await query.edit_message_text(precios, reply_markup=back_to_main_menu_keyboard)
         elif query.data == 'guia_de_tallas':
             await query.edit_message_text(
                 "Aquí tienes la GUÍA DE TALLAS: https://drive.google.com/uc?export=view&id=1x6aW1N4WMCKc7hrFvdqFv3DqrRLk-7IJ.",
@@ -135,21 +112,13 @@ def setup_bot2():
                 [InlineKeyboardButton("⬅️ Volver al menú principal", callback_data='main_menu')]
             ]
             reply_markup = InlineKeyboardMarkup(keyboard)
-            await query.edit_message_text(
-                text="Nuestras redes sociales:",
-                reply_markup=reply_markup
-            )
+            await query.edit_message_text(text="Nuestras redes sociales:", reply_markup=reply_markup)
         elif query.data == 'main_menu':
-            await start(update, context)
-
-    async def handle_message(update: Update, context: CallbackContext) -> None:
-        if update.message.chat.type == "private":
             await start(update, context)
 
     application = Application.builder().token(BOT2_TOKEN).build()
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CallbackQueryHandler(handle_callback))
-    application.add_handler(MessageHandler(filters.ChatType.PRIVATE & filters.TEXT, handle_message))
 
     return application
 
@@ -157,22 +126,20 @@ def setup_bot2():
 bot2 = setup_bot2()
 
 # Configura el webhook para el bot 2
-async def set_webhook(application, path):
-    url = f"{WEBHOOK_URL_BASE}{path}"
-    await application.bot.set_webhook(url=url)
+async def handle_bot2(request):
+    """Procesa las solicitudes del webhook."""
+    body = await request.text()
+    update = Update.de_json(body, bot2.bot)
+    await bot2.update_queue.put(update)
+    return web.Response(text="OK")
 
-async def setup_webhooks():
-    await set_webhook(bot2, "/bot2")
-
-# Crea la aplicación web para manejar los webhooks
+# Configura los endpoints y el servidor web
 app = web.Application()
-app.add_routes([
-    web.post("/bot2", bot2.update_queue.put),  # Cambiado a update_queue.put
-])
+app.router.add_post("/bot2", handle_bot2)
 
 # Inicia el servidor web
 if __name__ == '__main__':
     import asyncio
     loop = asyncio.get_event_loop()
-    loop.run_until_complete(setup_webhooks())
+    loop.create_task(bot2.initialize())  # Inicializa el bot
     web.run_app(app, host="0.0.0.0", port=int(os.getenv("PORT", 8443)))
